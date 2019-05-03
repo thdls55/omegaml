@@ -1,15 +1,13 @@
 .PHONY: dist image help
 VERSION=$(shell cat omegaml/VERSION)
 
-test:
-	unset DJANGO_SETTINGS_MODULE && nosetests
-
 dist:
 	: "run setup.py sdist bdist_wheel"
 	rm -rf ./dist/*
 	python setup.py sdist bdist_wheel
 
 test: dist
+    unset DJANGO_SETTINGS_MODULE && nosetests
 	scripts/livetest.sh --local
 
 image:
@@ -24,7 +22,7 @@ release-test: dist
 	sleep 5
 	scripts/livetest.sh --testpypi
 
-release-prod: dist
+release-prod: test dist
 	: "twine upload to pypi prod"
 	# see https://packaging.python.org/tutorials/packaging-projects/
 	# config is in $HOME/.pypirc
