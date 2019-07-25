@@ -50,7 +50,9 @@ mkdir -p /tmp/screenshots
 # only build livetet image if requested
 if [ -z "$nobuild" ]; then
   docker rmi -f $docker_image
-  docker build --build-arg pypi=$pypi -f ./scripts/livetest/Dockerfile -t $docker_image $script_dir/livetest
+  docker build --build-arg pypi=$pypi --build-arg omegaml_version=$docker_tag \
+         -f ./scripts/livetest/Dockerfile \
+         -t $docker_image $script_dir/livetest
 fi
 # get omegaml running, build if requested
 docker-compose stop
@@ -60,7 +62,12 @@ if [ ! -z "$tag" ]; then
   docker tag omegaml/omegaml:latest omegaml/omegaml:$docker_tag
 fi
 # actually run the livetest
-docker run -p $chrome_debug_port -e CHROME_HEADLESS=1 -e CHROME_SCREENSHOTS=/tmp/screenshots -v /tmp/screenshots:/tmp/screenshots $docker_network $docker_env $docker_image behave --no-capture $behave_features
+docker run -p $chrome_debug_port \
+       -e CHROME_HEADLESS=1 \
+       -e CHROME_SCREENSHOTS=/tmp/screenshots \
+       -v /tmp/screenshots:/tmp/screenshots \
+       $docker_network $docker_env $docker_image \
+       behave --no-capture $behave_features
 #docker run -it -p $chrome_debug_port -e CHROME_HEADLESS=1 -e CHROME_SCREENSHOTS=/tmp/screenshots -v /tmp/screenshots:/tmp/screenshots $docker_network $docker_env $docker_image bash
 rm -f $script_dir/livetest/packages/*whl
 docker-compose stop
